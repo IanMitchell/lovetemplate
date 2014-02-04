@@ -11,17 +11,17 @@
 	<key>CFBundleIconFile</key>
 	<string>game.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.COMPANY.GAME</string>
+	<string>$IDENTIFIER$</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Game</string>
+	<string>$GAME$</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
 	<key>CFBundleSignature</key>
-	<string>LoVe</string>
+	<string>$IDENTIFIER$</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
@@ -39,7 +39,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>© 2014 COMPANY NAME</string>
+	<string>© 2014 $COMPANY$</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

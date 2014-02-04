@@ -1,8 +1,31 @@
 Just a little template/starter for [Löve2D](http://love2d.org) games. Comes by default with the `conf.lua` and `main.lua` files, directories for additional game and third party code, a directory for content, and a build system for packaging the game up for distribution<sup>1</sup>. Each directory contains a README you can see for further information.
 
-The sublime-project included has a build system configured for use on OS X with the default love.app placed in the root /Applications directory. You can use this to run your game directly within Sublime Text. The command will need modification on other platforms, however.
+The sublime-project included has a build system that can be used. It will appear in the menu as "Löve2D Game". It assumes an executable named 'love' is available. In OS X you achieve this by making a link to the application into /usr/bin using the Terminal:
 
-This template and all files within are available under the zlib license:
+    sudo ln -s /Applications/love.app/Contents/MacOS/love /usr/bin/love
+
+<sup>1</sup> The build system is written in Ruby but currently leverages OS X shell commands. Work would need to be done to make the script work appropriately in Windows.
+
+
+Getting Started
+---
+
+Clone the template and move into the directory:
+
+    git clone https://github.com/nickgravelyn/lovetemplate GAMENAME
+    cd GAMENAME
+
+Initialize the template:
+
+    ruby init.rb "Company Name" "Game Name"
+
+Now you can open up the project in Sublime Text (or your favorite editor) and get to work.
+
+
+License
+---
+
+This template is provided for free with the included Ruby scripts available under the zlib license:
 
     Copyright (c) 2014 Nick Gravelyn
 
@@ -25,6 +48,3 @@ This template and all files within are available under the zlib license:
        3. This notice may not be removed or altered from any source
        distribution.
 
-
-
-<sup>1</sup> The build system is written in Ruby but currently leverages OS X shell commands. Work would need to be done to make the script work appropriately in Windows.

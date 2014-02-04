@@ -10,7 +10,7 @@
     [
         {
             "name": "Löve2D Game",
-            "cmd": [ "/Applications/love.app/Contents/MacOS/love", "$project_path" ],
+            "cmd": [ "love", "$project_path" ],
             "working_dir": "$project_path"
         }
     ]

@@ -1,9 +1,9 @@
 function love.conf(t)
   -- App identity corresponds to save location
-  t.identity = 'com.COMPANYNAME.GAME'
+  t.identity = '$IDENTIFIER$'
 
   -- Configure the window
-  t.window.title = 'GAME'
+  t.window.title = '$GAME$'
   t.window.width = 1280
   t.window.height = 720
 
