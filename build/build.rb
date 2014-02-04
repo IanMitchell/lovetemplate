@@ -33,8 +33,14 @@ def reset_dir(dir)
 end
 
 def copy_dir_if_not_empty(src, dst)
-  if File.exist?(src) and Dir.glob("#{src}/*")
+  # Ensure the source exists and has files in it other than the readme
+  if File.exist?(src) and (Dir.glob("#{src}/*").size > 1 or not File.exist?("#{src}/README.md"))
     FileUtils.copy_entry src, dst
+
+    # After copying, delete the readme from the template
+    if File.exist?("#{dst}/README.md")
+      File.delete("#{dst}/README.md")
+    end
   end
 end
 
