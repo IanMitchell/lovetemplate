@@ -1,5 +1,7 @@
 Just a little template/starter for [Löve2D](http://love2d.org) games. Comes by default with the `conf.lua` and `main.lua` files, directories for additional game and third party code, a directory for content, and a build system for packaging the game up for distribution<sup>1</sup>. Each directory contains a README you can see for further information.
 
+The sublime-project included has a build system configured for use on OS X with the default love.app placed in the root /Applications directory. You can use this to run your game directly within Sublime Text. The command will need modification on other platforms, however.
+
 This template and all files within are available under the zlib license:
 
     Copyright (c) 2014 Nick Gravelyn
