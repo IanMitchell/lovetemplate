@@ -12,7 +12,7 @@ Getting Started
 
 Clone the template and move into the directory:
 
-    git clone https://github.com/nickgravelyn/lovetemplate GAMENAME
+    git clone https://github.com/nickgravelyn/lovetemplate.git GAMENAME
     cd GAMENAME
 
 Initialize the template:
