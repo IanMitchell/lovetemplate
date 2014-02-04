@@ -4,8 +4,8 @@ function love.conf(t)
 
   -- Configure the window
   t.window.title = '$GAME$'
-  t.window.width = 1280
-  t.window.height = 720
+  t.window.width = 960
+  t.window.height = 540
 
   -- Configure modules we need
   t.modules.audio = true
