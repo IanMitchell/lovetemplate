@@ -2,7 +2,7 @@
 #  Created by Nick Gravelyn.
 #
 #  Builds the game into a single Windows executable file or into a Mac OS X app bundle.
-#  This script downloads the latest 0.9.0 packages for Löve and uses them to generate
+#  This script downloads the latest 0.9.1 packages for Löve and uses them to generate
 #  the resulting applications.
 #
 #  This script depends on the general layout of the template directory but can probably
@@ -115,8 +115,8 @@ if buildOSX
 
   # Download the standard build
   Dir.chdir tempDir
-  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.0-macosx-x64.zip )
-  %x( unzip love-0.9.0-macosx-x64.zip )
+  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-macosx-x64.zip )
+  %x( unzip love-0.9.1-macosx-x64.zip )
   Dir.chdir currentDir
 
   # Copy the app to the build
@@ -147,15 +147,15 @@ end
 
 if buildWin32
   win32Path = File.join outputDir, gameName
-  win32RawPath = File.join tempDir, 'love-0.9.0-win32'
+  win32RawPath = File.join tempDir, 'love-0.9.1-win32'
 
   # Clear the temp directory
   reset_dir tempDir
 
   # Download the standard build
   Dir.chdir tempDir
-  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.0-win32.zip )
-  %x( unzip love-0.9.0-win32.zip )
+  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-win32.zip )
+  %x( unzip love-0.9.1-win32.zip )
   Dir.chdir currentDir
 
   # Remove some files we don't want going with our game
