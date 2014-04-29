@@ -7,19 +7,8 @@
 #
 #  This script depends on the general layout of the template directory but can probably
 #  be easily modified to work with other layouts of Löve games.
-#
-#  Options:
-#    --osx      Builds only the OS X version
-#    --win32    Builds only the Windows version
 
 require 'fileutils'
-
-#################
-# PARSE ARGUMENTS
-#################
-
-buildOSX = ARGV.include?('--osx') == true || ARGV.include?('--win32') == false
-buildWin32 = ARGV.include?('--win32') == true || ARGV.include?('--osx') == false
 
 ############################
 # DEFINE SOME HELPER METHODS
@@ -53,141 +42,147 @@ end
 # PREPARE SOME VARIABLES AND DIRECTORIES
 ########################################
 
-currentDir = Dir.pwd
+$currentDir = Dir.pwd
 
 # Get some paths
-buildDir = File.expand_path File.dirname(__FILE__)
-outputDir = File.join buildDir, 'output'
-tempDir = File.join buildDir, 'temp'
+$buildDir = File.expand_path File.dirname(__FILE__)
+$outputDir = File.join $buildDir, 'output'
+$tempDir = File.join $buildDir, 'temp'
 
 # Find the project root by looking for the .sublime-project
-rootDir = buildDir
+rootDir = $buildDir
 while Dir.glob(File.join(rootDir, '*.sublime-project')).empty?
   rootDir = File.expand_path('..', rootDir)
 end
 
 # Use the sublime project name as the name of the game
-gameName = File.basename(Dir.glob(File.join(rootDir, '*.sublime-project'))[0], '.*');
-gameLoveFile = File.join outputDir, "#{gameName}.love"
+$gameName = File.basename(Dir.glob(File.join(rootDir, '*.sublime-project'))[0], '.*');
+$gameLoveFile = File.join $outputDir, "#{$gameName}.love"
 
 # Clear and create the temp and output directories
-reset_dir tempDir
-reset_dir outputDir
+reset_dir $tempDir
+reset_dir $outputDir
 
 ##########################
 # BUILD THE .LOVE ZIP FILE
 ##########################
 
 # Copy over the content, lib, and game directories if they exist and aren't empty
-copy_dir_if_not_empty File.join(rootDir, 'content'), File.join(tempDir, 'content')
-copy_dir_if_not_empty File.join(rootDir, 'lib'), File.join(tempDir, 'lib')
-copy_dir_if_not_empty File.join(rootDir, 'game'), File.join(tempDir, 'game')
+copy_dir_if_not_empty File.join(rootDir, 'content'), File.join($tempDir, 'content')
+copy_dir_if_not_empty File.join(rootDir, 'lib'), File.join($tempDir, 'lib')
+copy_dir_if_not_empty File.join(rootDir, 'game'), File.join($tempDir, 'game')
 
 # Copy all root level lua files as well
 Dir.glob(File.join(rootDir, '*.lua')).each do |f|
-  FileUtils.copy_entry f, File.join(tempDir, File.basename(f))
+  FileUtils.copy_entry f, File.join($tempDir, File.basename(f))
 end
 
 # Delete any .DS_Store files OS X makes
-Dir["#{tempDir}/**/.DS_Store"].each do |s|
+Dir["#{$tempDir}/**/.DS_Store"].each do |s|
   File.delete s
 end
 
 # Compress into a ZIP and rename to .love
-Dir.chdir tempDir
-%x( zip -9 -q -r #{gameLoveFile} . )
-Dir.chdir currentDir
+Dir.chdir $tempDir
+%x( zip -9 -q -r #{$gameLoveFile} . )
+Dir.chdir $currentDir
 
 ####################
 # CREATE THE OSX APP
 ####################
 
-if buildOSX
-  appPath = File.join outputDir, "#{gameName}.app"
+appPath = File.join $outputDir, "#{$gameName}.app"
 
-  # Clear the temp directory
-  reset_dir tempDir
+# Clear the temp directory
+reset_dir $tempDir
 
-  # Delete the app if it exists in our build directory
-  if File.directory? appPath
-    FileUtils.rm_r appPath
-  end
-
-  # Download the standard build
-  Dir.chdir tempDir
-  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-macosx-x64.zip )
-  %x( unzip love-0.9.1-macosx-x64.zip )
-  Dir.chdir currentDir
-
-  # Copy the app to the build
-  FileUtils.copy_entry "#{tempDir}/love.app", appPath
-
-  # Remove the standard icons
-  File.delete File.join(appPath, 'Contents/Resources/Love.icns')
-  File.delete File.join(appPath, 'Contents/Resources/LoveDocument.icns')
-
-  # Replace the app Info.plist with ours
-  FileUtils.copy_entry File.join(buildDir, 'Info.plist'), File.join(appPath, 'Contents/Info.plist'), false, false, true
-
-  # Put in our icon
-  FileUtils.copy_entry File.join(buildDir, "#{gameName}.icns"), File.join(appPath, "Contents/Resources/#{gameName}.icns")
-
-  # Put our .love file into the app
-  FileUtils.copy_entry gameLoveFile, File.join(appPath, "Contents/Resources/#{gameName}.love")
-
-  # Zip up the app for redistribution
-  Dir.chdir outputDir
-  %x( zip -9 -q -r #{gameName}-OSX.zip #{gameName}.app )
-  Dir.chdir currentDir
+# Delete the app if it exists in our build directory
+if File.directory? appPath
+  FileUtils.rm_r appPath
 end
 
-########################
-# CREATE THE WIN32 BUILD
-########################
+# Download the standard build
+Dir.chdir $tempDir
+%x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-macosx-x64.zip )
+%x( unzip love-0.9.1-macosx-x64.zip )
+Dir.chdir $currentDir
 
-if buildWin32
-  win32Path = File.join outputDir, gameName
-  win32RawPath = File.join tempDir, 'love-0.9.1-win32'
+# Copy the app to the build
+FileUtils.copy_entry "#{$tempDir}/love.app", appPath
+
+# Remove the standard icons
+File.delete File.join(appPath, 'Contents/Resources/Love.icns')
+File.delete File.join(appPath, 'Contents/Resources/LoveDocument.icns')
+
+# Replace the app Info.plist with ours
+FileUtils.copy_entry File.join($buildDir, 'Info.plist'), File.join(appPath, 'Contents/Info.plist'), false, false, true
+
+# Put in our icon
+FileUtils.copy_entry File.join($buildDir, "#{$gameName}.icns"), File.join(appPath, "Contents/Resources/#{$gameName}.icns")
+
+# Put our .love file into the app
+FileUtils.copy_entry $gameLoveFile, File.join(appPath, "Contents/Resources/#{$gameName}.love")
+
+# Zip up the app for redistribution
+Dir.chdir $outputDir
+%x( zip -9 -q -r #{$gameName}-OSX.zip #{$gameName}.app )
+Dir.chdir $currentDir
+
+# Remove the app once complete
+FileUtils.rm_r "#{$outputDir}/#{$gameName}.app"
+
+###########################
+# CREATE THE WINDOWS BUILDS
+###########################
+# Define a function to build either 32- or 64-bit versions
+def BuildWindows(version)
+  loosePath = File.join $outputDir, $gameName
+  rawPath = File.join $tempDir, "love-0.9.1-win#{version}"
 
   # Clear the temp directory
-  reset_dir tempDir
+  reset_dir $tempDir
 
   # Download the standard build
-  Dir.chdir tempDir
-  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-win32.zip )
-  %x( unzip love-0.9.1-win32.zip )
-  Dir.chdir currentDir
+  puts "Downloading Löve for Win#{version}..."
+  Dir.chdir $tempDir
+  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-win#{version}.zip )
+  %x( unzip love-0.9.1-win#{version}.zip )
+  Dir.chdir $currentDir
 
   # Remove some files we don't want going with our game
-  File.delete "#{win32RawPath}/changes.txt"
-  File.delete "#{win32RawPath}/readme.txt"
-  File.delete "#{win32RawPath}/game.ico"
-  File.delete "#{win32RawPath}/love.ico"
+  File.delete "#{rawPath}/changes.txt"
+  File.delete "#{rawPath}/readme.txt"
+  File.delete "#{rawPath}/game.ico"
+  File.delete "#{rawPath}/love.ico"
 
   # Copy all of the win32 pieces into the output directory
-  FileUtils.copy_entry win32RawPath, win32Path
+  FileUtils.copy_entry rawPath, loosePath
 
   # Copy our icon into the mix
-  FileUtils.copy_entry "#{buildDir}/#{gameName}.ico", "#{win32Path}/#{gameName}.ico"
+  FileUtils.copy_entry "#{$buildDir}/#{$gameName}.ico", "#{loosePath}/#{$gameName}.ico"
 
   # Build the final exe
-  %x( cat #{win32Path}/love.exe #{gameLoveFile} > #{win32Path}/#{gameName}.exe )
+  %x( cat #{loosePath}/love.exe #{$gameLoveFile} > #{loosePath}/#{$gameName}.exe )
 
   # Remove the old love exe
-  File.delete "#{win32Path}/love.exe"
+  File.delete "#{loosePath}/love.exe"
 
   # Zip up the loose folder for redistribution
-  Dir.chdir outputDir
-  %x( zip -9 -q -r #{gameName}-Win32.zip #{gameName} )
-  Dir.chdir currentDir
+  Dir.chdir $outputDir
+  %x( zip -9 -q -r #{$gameName}-Win#{version}.zip #{$gameName} )
+  Dir.chdir $currentDir
 
   # Remove the loose directory
-  FileUtils.rm_r win32Path
+  FileUtils.rm_r loosePath
 end
+
+# Build both versions
+BuildWindows "32"
+BuildWindows "64"
 
 ################
 # FINAL CLEAN UP
 ################
 
 # Remove the temp directory
-FileUtils.rm_r tempDir
+FileUtils.rm_r $tempDir
