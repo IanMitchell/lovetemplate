@@ -4,8 +4,9 @@
 #  This script helps configure the template for use with a game. It does a few things:
 #    1. Removes all README.md files in all directories.
 #    2. Renames the sublime-project to the game name.
-#    3. Does string replacements in Info.plist and conf.lua to configure the game properly.
-#    4. Removes this script once complete.
+#    3. Removes the .git directory.
+#    4. Does string replacements in Info.plist and conf.lua to configure the game properly.
+#    5. Removes this script once complete.
 #
 #  Usage:
 #    ruby init.rb "Company Name" "Game Name"
