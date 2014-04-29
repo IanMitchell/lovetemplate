@@ -8,7 +8,10 @@
 #  This script depends on the general layout of the template directory but can probably
 #  be easily modified to work with other layouts of Löve games.
 
+require 'rubygems'
 require 'fileutils'
+require 'open-uri'
+require 'zip'
 
 ############################
 # DEFINE SOME HELPER METHODS
@@ -34,6 +37,36 @@ def copy_dir_if_not_empty(src, dst)
     # If the destination is empty, delete it entirely
     if Dir.glob("#{dst}/*").empty?
       FileUtils.rm_r(dst)
+    end
+  end
+end
+
+def download_love_build(file)
+  zipPath = "#{$tempDir}/#{file}"
+  baseName = File.basename file, '.*'
+
+  File.write(zipPath, open("http://cdn.bitbucket.org/rude/love/downloads/#{file}").read, {mode: 'wb'})
+
+  Zip::File.open(zipPath) do |zipfile|
+    zipfile.each do |entry|
+      if not entry.name.start_with? '__MACOSX'
+        entryPath = "#{$tempDir}/#{entry.name}"
+        FileUtils.mkdir_p(File.dirname(entryPath))
+        entry.extract entryPath
+      end
+    end
+  end
+
+  File.delete zipPath
+end
+
+def create_zip_file(directory, zipFilePath)
+  # Ensure the path ends with a trailing slash
+  directory = "#{directory}/" unless directory.end_with? '/'
+
+  Zip::File.open(zipFilePath, Zip::File::CREATE) do |zipfile|
+    Dir[File.join(directory, '**', '**')].each do |file|
+      zipfile.add(file.sub(directory, ''), file)
     end
   end
 end
@@ -83,101 +116,91 @@ Dir["#{$tempDir}/**/.DS_Store"].each do |s|
 end
 
 # Compress into a ZIP and rename to .love
-Dir.chdir $tempDir
-%x( zip -9 -q -r #{$gameLoveFile} . )
-Dir.chdir $currentDir
+create_zip_file $tempDir, $gameLoveFile
 
 ####################
 # CREATE THE OSX APP
 ####################
 
-appPath = File.join $outputDir, "#{$gameName}.app"
-
 # Clear the temp directory
 reset_dir $tempDir
 
-# Delete the app if it exists in our build directory
-if File.directory? appPath
-  FileUtils.rm_r appPath
-end
+osxAppPath = File.join $tempDir, "#{$gameName}.app"
 
 # Download the standard build
-Dir.chdir $tempDir
-%x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-macosx-x64.zip )
-%x( unzip love-0.9.1-macosx-x64.zip )
-Dir.chdir $currentDir
+download_love_build 'love-0.9.1-macosx-x64.zip'
 
-# Copy the app to the build
-FileUtils.copy_entry "#{$tempDir}/love.app", appPath
+# Mark the app as executable since the unzip messes that up
+FileUtils.chmod '+x', "#{$tempDir}/love.app/Contents/MacOS/love"
+
+# Rename the app to our game's name
+FileUtils.mv "#{$tempDir}/love.app", osxAppPath
 
 # Remove the standard icons
-File.delete File.join(appPath, 'Contents/Resources/Love.icns')
-File.delete File.join(appPath, 'Contents/Resources/LoveDocument.icns')
+File.delete File.join(osxAppPath, 'Contents/Resources/Love.icns')
+File.delete File.join(osxAppPath, 'Contents/Resources/LoveDocument.icns')
 
 # Replace the app Info.plist with ours
-FileUtils.copy_entry File.join($buildDir, 'Info.plist'), File.join(appPath, 'Contents/Info.plist'), false, false, true
+FileUtils.copy_entry File.join($buildDir, 'Info.plist'), File.join(osxAppPath, 'Contents/Info.plist'), false, false, true
 
 # Put in our icon
-FileUtils.copy_entry File.join($buildDir, "#{$gameName}.icns"), File.join(appPath, "Contents/Resources/#{$gameName}.icns")
+FileUtils.copy_entry File.join($buildDir, "#{$gameName}.icns"), File.join(osxAppPath, "Contents/Resources/#{$gameName}.icns")
 
 # Put our .love file into the app
-FileUtils.copy_entry $gameLoveFile, File.join(appPath, "Contents/Resources/#{$gameName}.love")
+FileUtils.copy_entry $gameLoveFile, File.join(osxAppPath, "Contents/Resources/#{$gameName}.love")
 
 # Zip up the app for redistribution
-Dir.chdir $outputDir
-%x( zip -9 -q -r #{$gameName}-OSX.zip #{$gameName}.app )
-Dir.chdir $currentDir
-
-# Remove the app once complete
-FileUtils.rm_r "#{$outputDir}/#{$gameName}.app"
+create_zip_file $tempDir, "#{$outputDir}/#{$gameName}-OSX.zip"
 
 ###########################
 # CREATE THE WINDOWS BUILDS
 ###########################
-# Define a function to build either 32- or 64-bit versions
-def BuildWindows(version)
-  loosePath = File.join $outputDir, $gameName
-  rawPath = File.join $tempDir, "love-0.9.1-win#{version}"
+def create_windows_build(version)
+  zipFile = "love-0.9.1-win#{version}.zip"
+  rawDir = File.join $tempDir, File.basename(zipFile, '.*')
+  looseRoot = File.join $outputDir, $gameName
+  loosePath = File.join looseRoot, $gameName
 
   # Clear the temp directory
   reset_dir $tempDir
 
+  # Ensure our loose root exists and is empty
+  reset_dir looseRoot
+
   # Download the standard build
-  Dir.chdir $tempDir
-  %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-win#{version}.zip )
-  %x( unzip love-0.9.1-win#{version}.zip )
-  Dir.chdir $currentDir
+  download_love_build "love-0.9.1-win#{version}.zip"
 
   # Remove some files we don't want going with our game
-  File.delete "#{rawPath}/changes.txt"
-  File.delete "#{rawPath}/readme.txt"
-  File.delete "#{rawPath}/game.ico"
-  File.delete "#{rawPath}/love.ico"
+  File.delete "#{rawDir}/changes.txt"
+  File.delete "#{rawDir}/readme.txt"
+  File.delete "#{rawDir}/game.ico"
+  File.delete "#{rawDir}/love.ico"
 
   # Copy all of the win32 pieces into the output directory
-  FileUtils.copy_entry rawPath, loosePath
+  FileUtils.copy_entry rawDir, loosePath
 
   # Copy our icon into the mix
   FileUtils.copy_entry "#{$buildDir}/#{$gameName}.ico", "#{loosePath}/#{$gameName}.ico"
 
   # Build the final exe
-  %x( cat #{loosePath}/love.exe #{$gameLoveFile} > #{loosePath}/#{$gameName}.exe )
+  File.open("#{loosePath}/#{$gameName}.exe", 'wb') do |outfile|
+    outfile.write(File.open("#{loosePath}/love.exe", 'rb').read)
+    outfile.write(File.open("#{$gameLoveFile}", 'rb').read)
+  end
 
   # Remove the old love exe
   File.delete "#{loosePath}/love.exe"
 
   # Zip up the loose folder for redistribution
-  Dir.chdir $outputDir
-  %x( zip -9 -q -r #{$gameName}-Win#{version}.zip #{$gameName} )
-  Dir.chdir $currentDir
+  create_zip_file looseRoot, "#{$outputDir}/#{$gameName}-Win#{version}.zip"
 
   # Remove the loose directory
-  FileUtils.rm_r loosePath
+  FileUtils.rm_r looseRoot
 end
 
 # Build both versions
-BuildWindows "32"
-BuildWindows "64"
+create_windows_build "32"
+create_windows_build "64"
 
 ################
 # FINAL CLEAN UP
