@@ -121,36 +121,39 @@ create_zip_file $tempDir, $gameLoveFile
 ####################
 # CREATE THE OSX APP
 ####################
+def create_mac_build()
+  # Clear the temp directory
+  reset_dir $tempDir
 
-# Clear the temp directory
-reset_dir $tempDir
+  osxAppPath = File.join $tempDir, "#{$gameName}.app"
 
-osxAppPath = File.join $tempDir, "#{$gameName}.app"
+  # Download the standard build
+  download_love_build 'love-0.9.1-macosx-x64.zip'
 
-# Download the standard build
-download_love_build 'love-0.9.1-macosx-x64.zip'
+  # Mark the app as executable since the unzip messes that up
+  FileUtils.chmod '+x', "#{$tempDir}/love.app/Contents/MacOS/love"
 
-# Mark the app as executable since the unzip messes that up
-FileUtils.chmod '+x', "#{$tempDir}/love.app/Contents/MacOS/love"
+  # Rename the app to our game's name
+  FileUtils.mv "#{$tempDir}/love.app", osxAppPath
 
-# Rename the app to our game's name
-FileUtils.mv "#{$tempDir}/love.app", osxAppPath
+  # Remove the standard icons
+  File.delete File.join(osxAppPath, 'Contents/Resources/Love.icns')
+  File.delete File.join(osxAppPath, 'Contents/Resources/LoveDocument.icns')
 
-# Remove the standard icons
-File.delete File.join(osxAppPath, 'Contents/Resources/Love.icns')
-File.delete File.join(osxAppPath, 'Contents/Resources/LoveDocument.icns')
+  # Replace the app Info.plist with ours
+  FileUtils.copy_entry File.join($buildDir, 'Info.plist'), File.join(osxAppPath, 'Contents/Info.plist'), false, false, true
 
-# Replace the app Info.plist with ours
-FileUtils.copy_entry File.join($buildDir, 'Info.plist'), File.join(osxAppPath, 'Contents/Info.plist'), false, false, true
+  # Put in our icon
+  FileUtils.copy_entry File.join($buildDir, "#{$gameName}.icns"), File.join(osxAppPath, "Contents/Resources/#{$gameName}.icns")
 
-# Put in our icon
-FileUtils.copy_entry File.join($buildDir, "#{$gameName}.icns"), File.join(osxAppPath, "Contents/Resources/#{$gameName}.icns")
+  # Put our .love file into the app
+  FileUtils.copy_entry $gameLoveFile, File.join(osxAppPath, "Contents/Resources/#{$gameName}.love")
 
-# Put our .love file into the app
-FileUtils.copy_entry $gameLoveFile, File.join(osxAppPath, "Contents/Resources/#{$gameName}.love")
+  # Zip up the app for redistribution
+  create_zip_file $tempDir, "#{$outputDir}/#{$gameName}-OSX.zip"
+end
 
-# Zip up the app for redistribution
-create_zip_file $tempDir, "#{$outputDir}/#{$gameName}-OSX.zip"
+create_mac_build()
 
 ###########################
 # CREATE THE WINDOWS BUILDS
