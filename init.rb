@@ -39,6 +39,10 @@ if File.exists? '.git' then FileUtils.rm_r '.git' end
 # Rename the sublime-project
 File.rename('game.sublime-project', "#{gameName}.sublime-project")
 
+# Rename the icon files
+File.rename('build/game.icns', "build/#{gameName}.icns")
+File.rename('build/game.ico', "build/#{gameName}.ico")
+
 # Update conf.lua and Info.plist
 [ 'conf.lua', 'build/Info.plist' ].each do |f|
   text = File.read f
