@@ -143,7 +143,6 @@ def BuildWindows(version)
   reset_dir $tempDir
 
   # Download the standard build
-  puts "Downloading Löve for Win#{version}..."
   Dir.chdir $tempDir
   %x( curl -# -L -O https://bitbucket.org/rude/love/downloads/love-0.9.1-win#{version}.zip )
   %x( unzip love-0.9.1-win#{version}.zip )
