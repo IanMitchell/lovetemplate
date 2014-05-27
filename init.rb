@@ -26,15 +26,13 @@ gameName = ARGV[1]
 # Form the identifier from the company and game name, after removing spaces and making it all lowercase
 identifier = "com.#{companyName}.#{gameName}".gsub(' ', '').downcase
 
-# Remove all readmes
-if File.exists? 'README.md' then File.delete 'README.md' end
-if File.exists? 'build/README.md' then File.delete 'build/README.md' end
-if File.exists? 'content/README.md' then File.delete 'content/README.md' end
-if File.exists? 'game/README.md' then File.delete 'game/README.md' end
-if File.exists? 'lib/README.md' then File.delete 'lib/README.md' end
+# Remove all ReadMe files
+Dir['**/*'].each do |filepath|
+  File.delete filepath if filepath.include? 'README.md'
+end
 
 # Remove the git directory. We leave gitignore in case the user wants it for their project.
-if File.exists? '.git' then FileUtils.rm_r '.git' end
+FileUtils.rm_r '.git' if File.exists? '.git'
 
 # Rename the sublime-project
 File.rename('game.sublime-project', "#{gameName}.sublime-project")
